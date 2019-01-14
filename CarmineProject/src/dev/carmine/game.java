@@ -37,13 +37,15 @@ public class game implements Runnable {
     public int health = 10;
     public int attack = 5;
     public int defense = 1;
-    public int speed = 2;
-    
+    public int speed = 5;
+
+    public char mobSelect = '0';
+
     public game(String title, int width, int height) {
         this.width = width;
         this.height = height;
         this.title = title;
-        
+
         mouseInput = new mouseInput();
         keyInput = new keyInput();
     }
@@ -75,31 +77,30 @@ public class game implements Runnable {
         g.setColor(Color.BLACK);
         g.drawString(" Start ", 230, 580);
         g.drawString("Settings", 225, 680);
-       
-        
+
         mouseX = mouseInput.getX();
         mouseY = mouseInput.getY();
-       while (true) {
+        if(mouseInput.clicked()) {
             if (mouseX >= 175 && mouseX <= 325 && mouseY >= 550 && mouseY <= 600) {
-                System.out.print(mouseX + ", " + mouseY);
-                break;
+                render(g);
             }
         }
     }
-    
+
     //Renders the menu selection to grind mobs
-    public void render(Graphics g){
+    public void render(Graphics g) {
         g.setFont(new Font("Palatino Linotype", Font.BOLD, 50));
         g.drawString("1. Pig", 10, 50);
         g.drawString("2. Bat", 10, 100);
         g.drawString("3. Neha", 10, 150);
         g.drawString("4. Ward", 10, 200);
-        
-        
-        
+
+        while (!keyInput.getKey()) {
+            mobSelect = keyInput.getChar();
+        }
+
+        battle(g);
     }
-    
-    
 
     //Renders images onto canvas
     public void battle(Graphics g) {
@@ -111,45 +112,49 @@ public class game implements Runnable {
         g.drawImage(Assets.sword, 500 / 3 - 150, height - 150, null);
         g.drawImage(Assets.bag, 200, height - 150, null);
         g.drawImage(Assets.spell, 375, height - 150, null);
-
         //End of Drawing
-        pigB(g);
+
+        //Runs mob display
+        mobB(g, mobSelect);
+          
     }
 
-    //Generic pig fight
-    public void pigB(Graphics g) {
-        int pigHealth = 5;
-        int pigAttack = 1;
-        int pigDefense = 1;
-        int pigSpeed = 1;
-        char c = 0;
+    //Generic mob fight
+    public void mobB(Graphics g, char mobSelect) {
+        int mobMultiplier = mobSelect - '0';
 
-        printHealth(health, pigHealth, g);
+        int mobHealth = 5 * mobMultiplier;
+        int mobAttack = 1 * mobMultiplier;
+        int mobDefense = 1 * mobMultiplier;
+        int mobSpeed = 1 * mobMultiplier;
+        int c = 0;
 
+        printHealth(health, mobHealth, g, mobSelect);
+        
         //Continues to run as long as pigHealth and health are > 0
-        while (pigHealth > 0 && health > 0) {
-            c = 0;
-            c = keyInput.getChar();
-            if (speed > pigSpeed) {
-                g.drawString("", 0, 0);
+        while (mobHealth > 0 && health > 0) {
+            while (!keyInput.getKey()) {
+                c = keyInput.getChar();
+            }
+
+            if (speed > mobSpeed) {
 
                 //Basic attack occurs
-                if (c == VK_1 || c == '1') {
-                    pigHealth -= dmg(attack, pigDefense);
-
-                    //Once pighealth reaches 0, the loop ends
-                    if (pigHealth <= 0) {
-                        pigHealth = 0;
-                        printHealth(health, pigHealth, g);
+                if (c == 1 || c == '1' || c == VK_1) {
+                    mobHealth -= dmg(attack, mobDefense);
+                    //Once pighealth reaches <0, the loop ends and reprints the final value
+                    if (mobHealth <= 0) {
+                        mobHealth = 0;
+                        printHealth(health, mobHealth, g, mobSelect);
                         break;
                     }
-                    printHealth(health, pigHealth, g);
-                    //Pig attacks
-                    health -= dmg(pigAttack, defense);
-                    printHealth(health, pigHealth, g);
+                    //Mob attacks and then health is reprinted
+                    health -= dmg(mobAttack, defense);
+                    printHealth(health, mobHealth, g, mobSelect);
                 }
             }
         }
+
     }
 
     //Damage method
@@ -173,9 +178,29 @@ public class game implements Runnable {
     }
 
     //Reprint Health Function
-    public void printHealth(int health, int mobHealth, Graphics g) {
+    public void printHealth(int health, int mobHealth, Graphics g, char mobSelect) {
+        g.setFont(new Font("Palatino Linotype", Font.ITALIC, 20));
         g.clearRect(0, 0, 400, 500);
-        g.drawString("Pig's Health: " + mobHealth, 300, 100);
+
+        //Allows various mob names
+        String mobName = " ";
+        switch (mobSelect) {
+            case '1':
+                mobName = "Pig's ";
+                break;
+            case '2':
+                mobName = "Bat's ";
+                break;
+            case '3':
+                mobName = "Neha's ";
+                break;
+            case '4':
+                mobName = "Ward's ";
+                break;
+            default:
+        }
+
+        g.drawString(mobName + "Health: " + mobHealth, 300, 100);
         g.drawString("Health: " + health, 100, 500);
 
     }
@@ -186,9 +211,8 @@ public class game implements Runnable {
         init();
 
         if (running) {
-            render(g);
-            //battle(g);
-            //menu(g);
+            menu(g);
+            //render(g);
         }
 
         stop();
