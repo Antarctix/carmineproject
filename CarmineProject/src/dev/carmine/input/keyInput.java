@@ -16,21 +16,28 @@ import java.awt.event.KeyEvent;
 public class keyInput extends KeyAdapter {
 
     private char c;
+    private boolean key = false;
 
     public char getChar() {  
         
         return c;
     }
     
+    public boolean getKey(){
+        return key;
+    }
+    
 
     @Override
     public void keyPressed(KeyEvent e) {
         c = e.getKeyChar();
+        key = true;
     }
     
     @Override
     public void keyReleased(KeyEvent e){
         c = 0;
+        key = false;
     }
 
 }
